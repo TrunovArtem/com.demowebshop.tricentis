@@ -1,3 +1,5 @@
+package UI;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -14,6 +16,10 @@ public class MainPage {
     }
     public void getMainPage() {
         driver.get(BaseUrl);
+    }
+    public GoodsPage getGoodsPage() {
+        driver.get("http://demowebshop.tricentis.com/build-your-own-expensive-computer-2");
+        return new GoodsPage(driver, wait);
     }
     public GoodsPage getCategoryDesktops (){
         driver.findElement(categoryComputersPath).click();

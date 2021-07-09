@@ -1,3 +1,5 @@
+package UI;
+
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.WebDriver;
@@ -14,7 +16,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
             driver = new ChromeDriver();
             wait = new WebDriverWait(driver, 10);
             mainPage = new MainPage(driver, wait);
-            mainPage.getMainPage();
+
+
         }
 
         @After
