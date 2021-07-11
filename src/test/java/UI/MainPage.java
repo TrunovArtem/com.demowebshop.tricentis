@@ -17,14 +17,14 @@ public class MainPage {
     public void getMainPage() {
         driver.get(BaseUrl);
     }
-    public GoodsPage getGoodsPage() {
+    public ItemPage getItemPage() {
         driver.get("http://demowebshop.tricentis.com/build-your-own-expensive-computer-2");
-        return new GoodsPage(driver, wait);
+        return new ItemPage(driver, wait);
     }
-    public GoodsPage getCategoryDesktops (){
+    public ItemPage getCategoryDesktops (){
         driver.findElement(categoryComputersPath).click();
         driver.findElement(categoryDesktopsPath).click();
-        return  new GoodsPage(driver,wait);
+        return  new ItemPage(driver,wait);
     }
 
 }

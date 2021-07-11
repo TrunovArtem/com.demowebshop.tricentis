@@ -1,30 +1,29 @@
 package API;
-import static io.restassured.matcher.RestAssuredMatchers.*;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 import API.pojos.*;
-import groovy.json.JsonBuilder;
-import groovy.json.JsonToken;
-import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.http.Cookie;
-import io.restassured.mapper.ObjectMapper;
-import io.restassured.specification.RequestSpecification;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class APItest {
     @Test
     public void FirstTest() {
+        String login = "admin";
+        String password = "password123";
+        String checkin = "2018-01-01";
+        String checkout = "2019-01-01";
+        String firstName = "Bill";
+        String lastName = "Gates";
+        int totalPrice = 1000;
+        boolean depositPaid = true;
+        String additionalNeeds = "none";
+
         AuthCreateTokenPojo authCreateTokenPojo = new AuthCreateTokenPojo();
-        authCreateTokenPojo.setUsername("admin");
-        authCreateTokenPojo.setPassword("password123");
+        authCreateTokenPojo.setUserName(login);
+        authCreateTokenPojo.setPassword(password);
+
         TokenPojo Auth = given()
                 .baseUri("https://restful-booker.herokuapp.com")
                 .basePath("/auth")
@@ -34,51 +33,83 @@ public class APItest {
                 .post()
                 .then()
                 .statusCode(200).extract().as(TokenPojo.class);
+        String token = "token=" + Auth.getToken();
 
         BookingCreateRequestPojo bookingCreateRequestPojo = new BookingCreateRequestPojo();
-        Bookingdates bookingdates = new Bookingdates();
-        bookingdates.setCheckin("2018-01-01");
-        bookingdates.setCheckout("2019-01-01");
-        bookingCreateRequestPojo.setFirstname("1");
-        bookingCreateRequestPojo.setLastname("2");
-        bookingCreateRequestPojo.setTotalprice(1600);
-        bookingCreateRequestPojo.setDepositpaid(true);
-        bookingCreateRequestPojo.setAdditionalneeds("none");
+        BookingDates bookingdates = new BookingDates();
+        bookingdates.setCheckin(checkin);
+        bookingdates.setCheckout(checkout);
+        bookingCreateRequestPojo.setFirstname(firstName);
+        bookingCreateRequestPojo.setLastname(lastName);
+        bookingCreateRequestPojo.setTotalprice(totalPrice);
+        bookingCreateRequestPojo.setDepositpaid(depositPaid);
+        bookingCreateRequestPojo.setAdditionalneeds(additionalNeeds);
         bookingCreateRequestPojo.setBookingdates(bookingdates);
-
 
         BookingCreateBookingResponsePojo res = given()
                 .baseUri("https://restful-booker.herokuapp.com/booking")
                 .contentType(ContentType.JSON)
                 .body(bookingCreateRequestPojo)
                 .post()
-                .then().extract().as(BookingCreateBookingResponsePojo.class);
+                .then().statusCode(200).extract().as(BookingCreateBookingResponsePojo.class);
         int createdBookingId = res.getBookingid();
 
-        String token =Auth.getToken();
-        token="token="+token;
-        System.out.println(token);
-        RequestSpecification REQ_SPEC = new RequestSpecBuilder().addCookie(token).build();
-        Cookie cookie2 = new Cookie.Builder(token).build();
+        GetBookingResponsePojo createdUser = given().baseUri("https://restful-booker.herokuapp.com/")
+                .basePath("booking/"+createdBookingId)
+                .contentType(ContentType.JSON)
+                .when().get()
+                .then()
+                .statusCode(200)
+                .extract().as(GetBookingResponsePojo.class);
+
+        Assert.assertEquals(firstName, createdUser.getFirstname());
+        Assert.assertEquals(lastName, createdUser.getLastname());
+        Assert.assertEquals(checkin, createdUser.getBookingdates().getCheckin());
+        Assert.assertEquals(checkout, createdUser.getBookingdates().getCheckout());
+        Assert.assertEquals(additionalNeeds, createdUser.getAdditionalneeds());
+        Assert.assertEquals(depositPaid, createdUser.isDepositpaid());
+        Assert.assertEquals(totalPrice, createdUser.getTotalprice());
+
+        BookingCreateRequestPojo update = new BookingCreateRequestPojo();
+        update= bookingCreateRequestPojo;
+        update.setTotalprice(10);
+
+        given()
+                .baseUri("https://restful-booker.herokuapp.com/")
+                .basePath("booking/"+createdBookingId)
+                .contentType(ContentType.JSON)
+                //.accept(ContentType.JSON)
+                .header("Cookie", token)
+                .body(update)
+                .when()
+                .patch()
+                .then()
+                .statusCode(200);
+
         given().baseUri("https://restful-booker.herokuapp.com/")
                 .basePath("booking/"+createdBookingId)
-                .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
-                .cookie(cookie2)
-                .body(bookingCreateRequestPojo)
-                .when()
-                .put()
-                .then().statusCode(200);
+                .when().get()
+                .then()
+                .statusCode(200)
+                .body("totalprice", equalTo(10));
+
+        Assert.assertTrue(given().baseUri("https://restful-booker.herokuapp.com/")
+                .basePath("booking/")
+                .contentType(ContentType.JSON)
+                .when().get()
+                .then()
+                .statusCode(200)
+                .extract().jsonPath().getList("bookingid").contains(createdBookingId));
+
         given()
-                .baseUri("https://restful-booker.herokuapp.com")
+                .baseUri("https://restful-booker.herokuapp.com/")
                 .basePath("/booking/"+createdBookingId)
                 .contentType(ContentType.JSON)
-                .cookie(token)
+                .header("Cookie", token)
                 .when()
-                .delete();
+                .delete().then().statusCode(201);
     }
-
-
 }
 
 

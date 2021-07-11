@@ -10,7 +10,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GoodsPage {
+public class ItemPage {
     private WebDriver driver;
     private WebDriverWait wait;
     private By changeDisplayPath = By.xpath("//select[@id='products-pagesize']");
@@ -26,42 +26,42 @@ public class GoodsPage {
     private By itemName = By.xpath("//h1[@itemprop='name']");
     private By itemPrice = By.xpath("//span[@itemprop='price']");
     private By cartQty = By.xpath("//span[@class='cart-qty']");
-    public GoodsPage(WebDriver driver, WebDriverWait wait) {
+    public ItemPage(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
         this.wait = wait;
     }
-    public int goodsOnPage (){
+    public int itemsOnPage(){
         List<WebElement> goodsList = new ArrayList<>();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='item-box']")));
         goodsList = driver.findElements(By.xpath("//div[@class='item-box']"));
         return goodsList.size();
     }
-    public GoodsPage changeDisplay (){
+    public ItemPage changeDisplay (){
         Select display = new Select(driver.findElement(changeDisplayPath));
         display.selectByIndex(0);
         return this;
     }
-    public GoodsPage changeSort (){
+    public ItemPage changeSort (){
         Select display = new Select(driver.findElement(changeSortPath));
         display.selectByIndex(4);
         return this;
     }
-    public GoodsPage selectProcessorFast (){
+    public ItemPage selectProcessorFast (){
         driver.findElement(typeProcessorFast).click();
         return this;
     }
-    public GoodsPage selectRAM8Gb (){
+    public ItemPage selectRAM8Gb (){
         driver.findElement(ram8gb).click();
         return this;
     }
-    public GoodsPage selectAllSoftware (){
+    public ItemPage selectAllSoftware (){
         driver.findElement(imageViewer).click();
         driver.findElement(officeSuite).click();
         driver.findElement(otherOfficeSuite).click();
         return this;
     }
 
-    public GoodsPage addToCart() {
+    public ItemPage addToCart() {
         wait.until(ExpectedConditions.visibilityOfElementLocated(cartButton));
         driver.findElement(cartButton).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(addToCartBTN));
@@ -75,11 +75,8 @@ public class GoodsPage {
         return new CartPage(driver,wait);
     }
     public boolean  checkTheShoppingCartHasPlus1Item (){
-        Integer qty = Integer.parseInt(driver.findElement(cartQty).getText().toString().replace("(","" ).replace(")",""));
-        if (qty>0){
-            return true;
-        }
-        return false;
+        int qty = Integer.parseInt(driver.findElement(cartQty).getText().toString().replace("(","" ).replace(")",""));
+        return qty > 0;
     }
     public String getItemName (){
         return driver.findElement(itemName).getText();
